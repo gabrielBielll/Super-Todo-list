@@ -225,6 +225,35 @@
                 });
             };
 
+            const handleToggleTaskType = (taskId, e) => {
+                e.stopPropagation(); // Evita que o clique se propague para o container da tarefa
+                setDb(prevDb => {
+                    const newDb = JSON.parse(JSON.stringify(prevDb));
+                    let taskToUpdate;
+
+                    // Encontra a tarefa específica para atualizar
+                    for (const acao of newDb.acoes) {
+                        const foundTask = acao.tarefas.find(t => t.id === taskId);
+                        if (foundTask) {
+                            taskToUpdate = foundTask;
+                            break;
+                        }
+                    }
+
+                    if (taskToUpdate) {
+                        // Alterna o tipo da tarefa entre automático e manual
+                        if (taskToUpdate.tipo === '[🤖 AUTOMÁTICO]') {
+                            taskToUpdate.tipo = '[🧑‍💻 MANUAL]';
+                        } else if (taskToUpdate.tipo === '[🧑‍💻 MANUAL]') {
+                            taskToUpdate.tipo = '[🤖 AUTOMÁTICO]';
+                        }
+                        // Não faz nada para outros tipos como '[+ RENDA]'
+                    }
+
+                    return newDb;
+                });
+            };
+
             const resetData = () => {
                 if(window.confirm("Tem certeza que deseja resetar TODOS os dados para o padrão inicial?")){
                     localStorage.removeItem('financeDb'); setDb(initialDb);
@@ -303,7 +332,51 @@
             const ChecklistModal = () => {
                 const action = db.acoes.find(a => a.id === checklistActionId); if (!action) return null;
                 const typeColors = {'[+ RENDA]': 'bg-green-500/20 text-green-400','[🤖 AUTOMÁTICO]': 'bg-blue-500/20 text-blue-400','[🧑‍💻 MANUAL]': 'bg-yellow-500/20 text-yellow-400'};
-                return (<div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setChecklistActionId(null)}> <div className="bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl border border-gray-700 p-6 flex flex-col" onClick={e => e.stopPropagation()}> <div className="flex justify-between items-center mb-4"><div><h2 className="text-xl font-bold">Dia {action.dia}: {action.evento}</h2><p className="text-gray-400">Responsável: {db.usuarios[action.responsavel].emoji} {db.usuarios[action.responsavel].nome}</p></div><button onClick={() => setChecklistActionId(null)} className="text-gray-500 hover:text-white text-3xl">&times;</button></div> <div className="space-y-3 flex-grow overflow-y-auto pr-2"> {action.tarefas.map(tarefa => (<div key={tarefa.id} onClick={() => handleToggleTask(action.id, tarefa.id)} className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${tarefa.concluida ? 'bg-green-500/10 text-gray-400' : 'bg-gray-700/50 hover:bg-gray-700'}`}> <div className="flex-grow"> <div className="flex justify-between items-center mb-1"><p className={`font-medium ${tarefa.concluida ? 'line-through' : ''}`}>{tarefa.descricao}</p><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${typeColors[tarefa.tipo] || 'bg-gray-500/20 text-gray-400'}`}>{tarefa.tipo}</span></div> <p className="text-sm text-gray-400">{tarefa.origemDestino}</p><p className="text-base font-bold text-cyan-400 mt-1">R$ {Number(tarefa.valor).toFixed(2)}</p> </div> <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ml-4 flex-shrink-0 ${tarefa.concluida ? 'bg-green-500 border-green-500' : 'border-gray-500'}`}>{tarefa.concluida && <span>&#10003;</span>}</div> </div>))} </div> <button onClick={() => setChecklistActionId(null)} className="mt-6 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0">Fechar</button> </div> </div>);
+
+                return (
+                    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setChecklistActionId(null)}>
+                        <div className="bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl border border-gray-700 p-6 flex flex-col" onClick={e => e.stopPropagation()}>
+                            <div className="flex justify-between items-center mb-4">
+                                <div>
+                                    <h2 className="text-xl font-bold">Dia {action.dia}: {action.evento}</h2>
+                                    <p className="text-gray-400">Responsável: {db.usuarios[action.responsavel].emoji} {db.usuarios[action.responsavel].nome}</p>
+                                </div>
+                                <button onClick={() => setChecklistActionId(null)} className="text-gray-500 hover:text-white text-3xl">&times;</button>
+                            </div>
+                            <div className="space-y-3 flex-grow overflow-y-auto pr-2">
+                                {action.tarefas.map(tarefa => (
+                                    <div key={tarefa.id} onClick={() => handleToggleTask(action.id, tarefa.id)} className={`p-3 rounded-lg cursor-pointer transition-all ${tarefa.concluida ? 'bg-green-500/10 text-gray-400' : 'bg-gray-700/50 hover:bg-gray-700'}`}>
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-grow">
+                                                <div className="flex justify-between items-center mb-1">
+                                                    <p className={`font-medium ${tarefa.concluida ? 'line-through' : ''}`}>{tarefa.descricao}</p>
+                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${typeColors[tarefa.tipo] || 'bg-gray-500/20 text-gray-400'}`}>{tarefa.tipo}</span>
+                                                </div>
+                                                <p className="text-sm text-gray-400">{tarefa.origemDestino}</p>
+                                            </div>
+                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ml-4 flex-shrink-0 ${tarefa.concluida ? 'bg-green-500 border-green-500' : 'border-gray-500'}`}>
+                                                {tarefa.concluida && <span>&#10003;</span>}
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <p className="text-base font-bold text-cyan-400">R$ {Number(tarefa.valor).toFixed(2)}</p>
+                                            {(tarefa.tipo === '[🤖 AUTOMÁTICO]' || tarefa.tipo === '[🧑‍💻 MANUAL]') && !tarefa.concluida && (
+                                                <button onClick={(e) => handleToggleTaskType(tarefa.id, e)} className={`text-xs px-2 py-1 rounded-md font-semibold transition-colors ${
+                                                    tarefa.tipo === '[🤖 AUTOMÁTICO]'
+                                                        ? 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/40'
+                                                        : 'bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/40'
+                                                }`}>
+                                                    {tarefa.tipo === '[🤖 AUTOMÁTICO]' ? 'Tornar Manual' : 'Tornar Automático'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={() => setChecklistActionId(null)} className="mt-6 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0">Fechar</button>
+                        </div>
+                    </div>
+                );
             };
 
             const EditActionModal = () => {
