@@ -266,9 +266,6 @@
 
       const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
 
-      // NOVO: modal de linha (planilha)
-      const [selectedRow, setSelectedRow] = useState(null); // { actionId, taskId }
-
       useEffect(() => {
         localStorage.setItem("financeDb", JSON.stringify(db));
       }, [db]);
@@ -436,10 +433,10 @@
         }
 
         // Caixinha (conta<->caixinha)
-        if (task.targetType === "caixinha" || task.sourceType === "caixinha") return "[*]";
+        if (task.targetType === "caixinha" || task.sourceType === "caixinha") return "📦";
 
         // Multi (recargas)
-        if (task.targetType === "multi") return "📦";
+        if (task.targetType === "multi") return "💳";
 
         // Entrada
         if (task.tipo === "[+ RENDA]") return "+";
@@ -455,8 +452,8 @@
         const symbol = getTaskSymbol(task);
         if (symbol === "+") return { label: `+ ${formatMoney(task.valor)}`, color: "text-green-400" };
         if (symbol === "-") return { label: `- ${formatMoney(task.valor)}`, color: "text-red-400" };
-        if (symbol === "📦") return { label: `- ${formatMoney(task.valor)}`, color: "text-yellow-300" }; // sai da conta (source)
-        if (symbol === "[*]") return { label: `${formatMoney(task.valor)}`, color: "text-cyan-300" };
+        if (symbol === "💳") return { label: `- ${formatMoney(task.valor)}`, color: "text-yellow-300" }; // sai da conta (source)
+        if (symbol === "📦") return { label: `${formatMoney(task.valor)}`, color: "text-cyan-300" };
         if (symbol.includes("→")) return { label: `→ ${formatMoney(task.valor)}`, color: "text-yellow-300" };
         return { label: formatMoney(task.valor), color: "text-gray-200" };
       };
@@ -673,7 +670,7 @@
             <div>
               <h2 className="text-base sm:text-lg font-semibold">Visão Planilha</h2>
               <p className="text-xs text-gray-400 mt-1">
-                Símbolos: <span className="text-green-400 font-semibold">+</span> entrada • <span className="text-red-400 font-semibold">-</span> pagamento • <span className="text-yellow-300 font-semibold">👩🏻→👨🏻</span> transferência • <span className="text-cyan-300 font-semibold">[*]</span> caixinha • <span className="text-yellow-300 font-semibold">📦</span> recargas
+                Símbolos: <span className="text-green-400 font-semibold">+</span> entrada • <span className="text-red-400 font-semibold">-</span> pagamento • <span className="text-yellow-300 font-semibold">👩🏻→👨🏻</span> transferência • <span className="text-cyan-300 font-semibold">📦</span> caixinha • <span className="text-yellow-300 font-semibold">💳</span> recargas
               </p>
             </div>
           </div>
@@ -698,7 +695,7 @@
                     <tr
                       key={`${r.actionId}_${r.taskId}`}
                       className="border-t border-gray-700 hover:bg-gray-700/40 cursor-pointer"
-                      onClick={() => setSelectedRow({ actionId: r.actionId, taskId: r.taskId })}
+                      onClick={() => setChecklistActionId(r.actionId)}
                     >
                       <td className="p-3 text-gray-200">{r.dia}</td>
                       <td className="p-3 text-gray-200 whitespace-nowrap">
@@ -797,119 +794,6 @@
           </div>
         );
       };
-
-      const RowDetailsModal = () => {
-        if (!selectedRow) return null;
-
-        const action = db.acoes.find((a) => a.id === selectedRow.actionId);
-        const task = action?.tarefas?.find((t) => t.id === selectedRow.taskId);
-        if (!action || !task) return null;
-
-        const symbol = getTaskSymbol(task);
-
-            const resolveSourceLabel = () => {
-              if (!task.sourceType || !task.sourceId) return "-";
-              if (task.sourceType === "conta") return `Conta: ${db.contas?.[task.sourceId]?.nome || task.sourceId}`;
-              if (task.sourceType === "caixinha") return `Caixinha: ${db.caixinhas?.[task.sourceId]?.nome || task.sourceId}`;
-              return `${task.sourceType}: ${task.sourceId}`;
-            };
-
-            return (
-              <div
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                onClick={() => setSelectedRow(null)}
-              >
-                <div
-                  className="bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl border border-gray-700 p-6"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-xl font-bold">
-                        Dia {action.dia} • <span className={signed.color}>{symbol}</span>
-                      </h2>
-                      <p className="text-gray-400 text-sm">{action.evento}</p>
-                    </div>
-                    <button onClick={() => setSelectedRow(null)} className="text-gray-500 hover:text-white text-3xl">
-                      &times;
-                    </button>
-                  </div>
-
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div>
-                      <span className="text-gray-400">Responsável:</span>{" "}
-                      {db.usuarios[action.responsavel]?.emoji} {db.usuarios[action.responsavel]?.nome}
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400">Descrição:</span> {task.descricao}
-                    </div>
-
-                    <div>
-                      <span className="text-gray-400">Origem/Destino (texto):</span> {task.origemDestino}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                      <div className="bg-gray-700/40 p-3 rounded-lg">
-                        <div className="text-gray-400 text-xs">Origem (cálculo)</div>
-                        <div className="text-gray-200">{resolveSourceLabel()}</div>
-                      </div>
-                      <div className="bg-gray-700/40 p-3 rounded-lg">
-                        <div className="text-gray-400 text-xs">Destino (cálculo)</div>
-                        <div className="text-gray-200">{resolveTargetLabel()}</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-2">
-                      <span className="text-gray-400">Tipo:</span>{" "}
-                      <span className="text-gray-200">{task.tipo}</span>
-                    </div>
-
-                    <div className={`text-lg font-bold ${signed.color}`}>
-                      Valor: {signed.label}
-                    </div>
-
-                    {task.targetType === "multi" && Array.isArray(task.targets) && (
-                      <div className="mt-2 bg-gray-700/40 p-3 rounded-lg">
-                        <div className="text-gray-200 font-semibold mb-1">Detalhamento (📦):</div>
-                        <ul className="list-disc ml-5 text-gray-300">
-                          {task.targets.map((t) => {
-                            const name =
-                              t.type === "cartao" ? (db.cartoes?.[t.id]?.nome || t.id) :
-                              t.type === "caixinha" ? (db.caixinhas?.[t.id]?.nome || t.id) :
-                              t.id;
-                            return (
-                              <li key={`${t.type}_${t.id}`}>
-                                {t.type}: {name} — {formatMoney(t.value)}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-5 flex gap-2">
-                    <button
-                      onClick={() => handleToggleTask(action.id, task.id)}
-                      className={`flex-1 font-bold py-2 px-4 rounded-lg transition-colors ${
-                        task.concluida ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-green-600 hover:bg-green-700 text-white"
-                      }`}
-                    >
-                      {task.concluida ? "Desfazer" : "Concluir"}
-                    </button>
-
-                    <button
-                      onClick={() => setSelectedRow(null)}
-                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          };
 
           // =========================================================
           // EditActionModal (mantido do seu projeto)
@@ -1188,7 +1072,6 @@
               </main>
 
               {checklistActionId && <ChecklistModal />}
-              {selectedRow && <RowDetailsModal />}
               {editingActionId && <EditActionModal />}
               {isManagementModalOpen && <ManagementModal />}
 
