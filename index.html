@@ -806,25 +806,6 @@
         if (!action || !task) return null;
 
         const symbol = getTaskSymbol(task);
-        const signed
-
-                  const RowDetailsModal = () => {
-            if (!selectedRow) return null;
-
-            const action = db.acoes.find((a) => a.id === selectedRow.actionId);
-            const task = action?.tarefas?.find((t) => t.id === selectedRow.taskId);
-            if (!action || !task) return null;
-
-            const symbol = getTaskSymbol(task);
-            const signed = getSignedDisplay(task);
-
-            const resolveTargetLabel = () => {
-              if (task.targetType === "conta") return `Conta: ${db.contas?.[task.targetId]?.nome || task.targetId}`;
-              if (task.targetType === "caixinha") return `Caixinha: ${db.caixinhas?.[task.targetId]?.nome || task.targetId}`;
-              if (task.targetType === "cartao") return `Cartão/Carteira: ${db.cartoes?.[task.targetId]?.nome || task.targetId}`;
-              if (task.targetType === "multi") return "Múltiplos destinos (📦)";
-              return "-";
-            };
 
             const resolveSourceLabel = () => {
               if (!task.sourceType || !task.sourceId) return "-";
