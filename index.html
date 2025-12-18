@@ -807,3 +807,428 @@
 
         const symbol = getTaskSymbol(task);
         const signed
+
+                  const RowDetailsModal = () => {
+            if (!selectedRow) return null;
+
+            const action = db.acoes.find((a) => a.id === selectedRow.actionId);
+            const task = action?.tarefas?.find((t) => t.id === selectedRow.taskId);
+            if (!action || !task) return null;
+
+            const symbol = getTaskSymbol(task);
+            const signed = getSignedDisplay(task);
+
+            const resolveTargetLabel = () => {
+              if (task.targetType === "conta") return `Conta: ${db.contas?.[task.targetId]?.nome || task.targetId}`;
+              if (task.targetType === "caixinha") return `Caixinha: ${db.caixinhas?.[task.targetId]?.nome || task.targetId}`;
+              if (task.targetType === "cartao") return `Cartão/Carteira: ${db.cartoes?.[task.targetId]?.nome || task.targetId}`;
+              if (task.targetType === "multi") return "Múltiplos destinos (📦)";
+              return "-";
+            };
+
+            const resolveSourceLabel = () => {
+              if (!task.sourceType || !task.sourceId) return "-";
+              if (task.sourceType === "conta") return `Conta: ${db.contas?.[task.sourceId]?.nome || task.sourceId}`;
+              if (task.sourceType === "caixinha") return `Caixinha: ${db.caixinhas?.[task.sourceId]?.nome || task.sourceId}`;
+              return `${task.sourceType}: ${task.sourceId}`;
+            };
+
+            return (
+              <div
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                onClick={() => setSelectedRow(null)}
+              >
+                <div
+                  className="bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl border border-gray-700 p-6"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-xl font-bold">
+                        Dia {action.dia} • <span className={signed.color}>{symbol}</span>
+                      </h2>
+                      <p className="text-gray-400 text-sm">{action.evento}</p>
+                    </div>
+                    <button onClick={() => setSelectedRow(null)} className="text-gray-500 hover:text-white text-3xl">
+                      &times;
+                    </button>
+                  </div>
+
+                  <div className="mt-4 space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-400">Responsável:</span>{" "}
+                      {db.usuarios[action.responsavel]?.emoji} {db.usuarios[action.responsavel]?.nome}
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400">Descrição:</span> {task.descricao}
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400">Origem/Destino (texto):</span> {task.origemDestino}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                      <div className="bg-gray-700/40 p-3 rounded-lg">
+                        <div className="text-gray-400 text-xs">Origem (cálculo)</div>
+                        <div className="text-gray-200">{resolveSourceLabel()}</div>
+                      </div>
+                      <div className="bg-gray-700/40 p-3 rounded-lg">
+                        <div className="text-gray-400 text-xs">Destino (cálculo)</div>
+                        <div className="text-gray-200">{resolveTargetLabel()}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-2">
+                      <span className="text-gray-400">Tipo:</span>{" "}
+                      <span className="text-gray-200">{task.tipo}</span>
+                    </div>
+
+                    <div className={`text-lg font-bold ${signed.color}`}>
+                      Valor: {signed.label}
+                    </div>
+
+                    {task.targetType === "multi" && Array.isArray(task.targets) && (
+                      <div className="mt-2 bg-gray-700/40 p-3 rounded-lg">
+                        <div className="text-gray-200 font-semibold mb-1">Detalhamento (📦):</div>
+                        <ul className="list-disc ml-5 text-gray-300">
+                          {task.targets.map((t) => {
+                            const name =
+                              t.type === "cartao" ? (db.cartoes?.[t.id]?.nome || t.id) :
+                              t.type === "caixinha" ? (db.caixinhas?.[t.id]?.nome || t.id) :
+                              t.id;
+                            return (
+                              <li key={`${t.type}_${t.id}`}>
+                                {t.type}: {name} — {formatMoney(t.value)}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5 flex gap-2">
+                    <button
+                      onClick={() => handleToggleTask(action.id, task.id)}
+                      className={`flex-1 font-bold py-2 px-4 rounded-lg transition-colors ${
+                        task.concluida ? "bg-gray-700 hover:bg-gray-600 text-white" : "bg-green-600 hover:bg-green-700 text-white"
+                      }`}
+                    >
+                      {task.concluida ? "Desfazer" : "Concluir"}
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedRow(null)}
+                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // =========================================================
+          // EditActionModal (mantido do seu projeto)
+          // =========================================================
+          const EditActionModal = () => {
+            const action = db.acoes.find((a) => a.id === editingActionId);
+            const [editedAction, setEditedAction] = React.useState(null);
+
+            React.useEffect(() => {
+              if (action) setEditedAction(JSON.parse(JSON.stringify(action)));
+            }, [action]);
+
+            if (!editedAction) return null;
+
+            const handleFieldChange = (e) => {
+              const { name, value } = e.target;
+              setEditedAction((p) => ({ ...p, [name]: name === "dia" ? parseInt(value) || 0 : value }));
+            };
+
+            const handleTaskChange = (taskId, field, value) => {
+              setEditedAction((p) => ({
+                ...p,
+                tarefas: p.tarefas.map((t) =>
+                  t.id === taskId ? { ...t, [field]: field === "valor" ? parseFloat(value) || 0 : value } : t
+                )
+              }));
+            };
+
+            const handleAddTask = () => {
+              setEditedAction((p) => ({
+                ...p,
+                tarefas: [
+                  ...p.tarefas,
+                  { id: Date.now(), descricao: "Nova Tarefa", origemDestino: "Definir", valor: 0, tipo: "[🧑‍💻 MANUAL]", concluida: false }
+                ]
+              }));
+            };
+
+            const handleDeleteTask = (taskId) => {
+              setEditedAction((p) => ({ ...p, tarefas: p.tarefas.filter((t) => t.id !== taskId) }));
+            };
+
+            const handleSave = () => {
+              handleSaveAction(editedAction);
+              setEditingActionId(null);
+            };
+
+            const handleDeleteAction = (actionId) => {
+              if (window.confirm("Apagar este evento?")) {
+                setDb((p) => ({ ...p, acoes: p.acoes.filter((a) => a.id !== actionId) }));
+                setEditingActionId(null);
+              }
+            };
+
+            return (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4" onClick={() => setEditingActionId(null)}>
+                <div className="bg-gray-800 w-full h-full sm:h-auto sm:w-full sm:max-w-lg rounded-none sm:rounded-2xl shadow-2xl border border-gray-700 p-6 flex flex-col" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-bold mb-4">Editando Evento</h2>
+                    <button onClick={() => setEditingActionId(null)} className="text-gray-500 hover:text-white text-3xl">&times;</button>
+                  </div>
+
+                  <div className="flex-grow overflow-y-auto pr-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <input name="dia" type="number" value={editedAction.dia} onChange={handleFieldChange} className="bg-gray-700 p-2 rounded col-span-1" placeholder="Dia" />
+                      <input name="evento" type="text" value={editedAction.evento} onChange={handleFieldChange} className="bg-gray-700 p-2 rounded col-span-2" placeholder="Nome" />
+                      <select name="responsavel" value={editedAction.responsavel} onChange={handleFieldChange} className="bg-gray-700 p-2 rounded col-span-3">
+                        <option value="gabriel">👨🏻 Gabriel</option>
+                        <option value="leticia">👩🏻 Leticia</option>
+                      </select>
+                    </div>
+
+                    <h3 className="text-lg font-semibold mb-2">Tarefas</h3>
+
+                    <div className="space-y-2">
+                      {editedAction.tarefas.map((task) => (
+                        <div key={task.id} className="bg-gray-700/50 p-2 rounded space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input type="text" value={task.descricao} onChange={(e) => handleTaskChange(task.id, "descricao", e.target.value)} className="bg-gray-600 p-1 rounded w-full" placeholder="Descrição" />
+                            <button onClick={() => handleDeleteTask(task.id)} className="text-red-400 p-1 rounded hover:bg-red-500/20 text-xl">🗑️</button>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <input type="text" value={task.origemDestino} onChange={(e) => handleTaskChange(task.id, "origemDestino", e.target.value)} className="bg-gray-600 p-1 rounded w-full" placeholder="Origem/Destino" />
+                            <input type="number" step="0.01" value={task.valor} onChange={(e) => handleTaskChange(task.id, "valor", e.target.value)} className="bg-gray-600 p-1 rounded w-28" placeholder="Valor" />
+                          </div>
+
+                          <select value={task.tipo} onChange={(e) => handleTaskChange(task.id, "tipo", e.target.value)} className="bg-gray-600 p-1 rounded w-full text-sm">
+                            <option value="[🧑‍💻 MANUAL]">🧑‍💻 MANUAL</option>
+                            <option value="[🤖 AUTOMÁTICO]">🤖 AUTOMÁTICO</option>
+                            <option value="[+ RENDA]">+ RENDA</option>
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button onClick={handleAddTask} className="mt-4 w-full text-sm bg-blue-500/20 text-blue-300 py-2 rounded-lg hover:bg-blue-500/40">
+                      Adicionar Tarefa
+                    </button>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700 flex-shrink-0">
+                    <button onClick={() => handleDeleteAction(action.id)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
+                      Apagar
+                    </button>
+                    <div>
+                      <button onClick={() => setEditingActionId(null)} className="text-gray-400 font-bold py-2 px-4 rounded-lg mr-2">
+                        Cancelar
+                      </button>
+                      <button onClick={handleSave} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // =========================================================
+          // ManagementModal (mantido do seu projeto)
+          // =========================================================
+          const ManagementModal = () => {
+            const [localDb, setLocalDb] = React.useState(() => JSON.parse(JSON.stringify(db)));
+
+            const handleItemChange = (itemType, itemId, field, value) => {
+              setLocalDb((p) => {
+                const newItems = { ...p[itemType] };
+                const target = newItems[itemId];
+
+                if (field === "meta" || field === "limite") {
+                  if (itemType === "caixinhas") target.meta = value;
+                  else target.limite = value;
+                } else {
+                  target[field] = value;
+                }
+
+                return { ...p, [itemType]: newItems };
+              });
+            };
+
+            const handleAddItem = (itemType) => {
+              const newId = `new_${Date.now()}`;
+              const newItem =
+                itemType === "caixinhas"
+                  ? { id: newId, nome: "Nova Caixinha", saldo: 0, meta: 100 }
+                  : { id: newId, nome: "Novo Cartão", saldo: 0, limite: 100 };
+
+              setLocalDb((p) => ({ ...p, [itemType]: { ...p[itemType], [newId]: newItem } }));
+            };
+
+            const handleLocalDeleteItem = (itemType, itemId) => {
+              if (window.confirm("Apagar este item?")) {
+                setLocalDb((p) => {
+                  const newItems = { ...p[itemType] };
+                  delete newItems[itemId];
+                  return { ...p, [itemType]: newItems };
+                });
+              }
+            };
+
+            const handleSaveAll = () => {
+              setDb(localDb);
+              setIsManagementModalOpen(false);
+            };
+
+            const renderItemEditor = (item, itemType) => (
+              <div key={item.id} className="bg-gray-700/50 p-3 rounded-lg space-y-2">
+                <div>
+                  <label className="text-xs text-gray-400 font-medium">Nome</label>
+                  <input value={item.nome} onChange={(e) => handleItemChange(itemType, item.id, "nome", e.target.value)} className="bg-gray-600 p-2 rounded w-full mt-1 text-sm" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs text-gray-400 font-medium">Saldo</label>
+                    <input type="number" step="0.01" value={item.saldo} onChange={(e) => handleItemChange(itemType, item.id, "saldo", parseFloat(e.target.value) || 0)} className="bg-gray-600 p-2 rounded w-full mt-1 text-sm" />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-gray-400 font-medium">{itemType === "caixinhas" ? "Meta" : "Limite"}</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={itemType === "caixinhas" ? item.meta : item.limite}
+                      onChange={(e) => handleItemChange(itemType, item.id, itemType === "caixinhas" ? "meta" : "limite", parseFloat(e.target.value) || 0)}
+                      className="bg-gray-600 p-2 rounded w-full mt-1 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <button onClick={() => handleLocalDeleteItem(itemType, item.id)} className="w-full text-sm bg-red-500/10 text-red-400 py-2 rounded-lg hover:bg-red-500/20">
+                  Apagar
+                </button>
+              </div>
+            );
+
+            return (
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4" onClick={() => setIsManagementModalOpen(false)}>
+                <div className="bg-gray-800 w-full h-full sm:h-[90vh] sm:max-w-4xl rounded-none sm:rounded-2xl shadow-2xl border border-gray-700 p-4 sm:p-6 flex flex-col" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex justify-between items-center mb-4 flex-shrink-0">
+                    <h2 className="text-xl font-bold">Gerenciar Finanças</h2>
+                    <button onClick={() => setIsManagementModalOpen(false)} className="text-gray-500 hover:text-white text-3xl">&times;</button>
+                  </div>
+
+                  <div className="flex-grow overflow-y-auto pr-2 grid grid-cols-1 lg:grid-cols-3 gap-x-6 gap-y-4">
+                    <div className="lg:col-span-1">
+                      <h3 className="text-lg font-semibold mb-3 text-cyan-400">Caixinhas</h3>
+                      <div className="space-y-3">{Object.values(localDb.caixinhas).map((item) => renderItemEditor(item, "caixinhas"))}</div>
+                      <button onClick={() => handleAddItem("caixinhas")} className="mt-4 w-full text-sm bg-blue-500/20 text-blue-300 py-2 rounded-lg hover:bg-blue-500/40">
+                        Adicionar Caixinha
+                      </button>
+                    </div>
+
+                    <div className="lg:col-span-1">
+                      <h3 className="text-lg font-semibold mb-3 text-green-400">Cartões</h3>
+                      <div className="space-y-3">{Object.values(localDb.cartoes).map((item) => renderItemEditor(item, "cartoes"))}</div>
+                      <button onClick={() => handleAddItem("cartoes")} className="mt-4 w-full text-sm bg-blue-500/20 text-blue-300 py-2 rounded-lg hover:bg-blue-500/40">
+                        Adicionar Cartão
+                      </button>
+                    </div>
+
+                    <div className="lg:col-span-1">
+                      <h3 className="text-lg font-semibold mb-3 text-yellow-400">Eventos</h3>
+                      <div className="space-y-2">
+                        {[...localDb.acoes].sort((a, b) => a.dia - b.dia).map((action) => (
+                          <div key={action.id} className="bg-gray-700/50 p-2 rounded-lg flex justify-between items-center">
+                            <div className="text-sm">
+                              <span className="font-bold">Dia {action.dia}:</span> {action.evento}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setIsManagementModalOpen(false);
+                                setEditingActionId(action.id);
+                              }}
+                              className="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-md hover:bg-yellow-500/40"
+                            >
+                              Editar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-end flex-shrink-0 pt-4 border-t border-gray-700">
+                    <button onClick={() => setIsManagementModalOpen(false)} className="text-gray-400 font-bold py-2 px-4 rounded-lg mr-2">
+                      Cancelar
+                    </button>
+                    <button onClick={handleSaveAll} className="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">
+                      Salvar Tudo
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          };
+
+          // =========================================================
+          // Render principal
+          // =========================================================
+          return (
+            <div className="min-h-screen pb-20">
+              <Header />
+              <main>
+                <ContasPanel />
+                <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
+
+                <CaixinhasPanel />
+                <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
+
+                <CartoesPanel />
+                <ViewSwitcher />
+
+                {mode === "planilha" ? <SpreadsheetView /> : <Timeline />}
+              </main>
+
+              {checklistActionId && <ChecklistModal />}
+              {selectedRow && <RowDetailsModal />}
+              {editingActionId && <EditActionModal />}
+              {isManagementModalOpen && <ManagementModal />}
+
+              <button
+                onClick={() => {
+                  const newAction = { id: Date.now(), dia: new Date().getDate(), responsavel: "gabriel", evento: "Novo Evento", tarefas: [] };
+                  handleSaveAction(newAction);
+                  setEditingActionId(newAction.id);
+                }}
+                className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-cyan-600 text-white w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-2xl sm:text-3xl shadow-lg hover:bg-cyan-700 transition-transform hover:scale-110 z-30"
+              >
+                +
+              </button>
+            </div>
+          );
+        };
+
+        const container = document.getElementById("root");
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+      </script>
+    </body>
+    </html>
+
