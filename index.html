@@ -233,6 +233,27 @@
     };
 
     // =========================================================
+    // CONSTANTS & HELPERS
+    // =========================================================
+    const GUIDE_DATA = [
+      { id: "nubank", name: "Nubank", keywords: ["nubank", "nuconta", "aluguel", "obra", "viagem"], logo: "assets/nubank.png", badge: "🟣", badgeColor: "bg-[#820AD1] text-white", logoBg: "bg-[#820AD1]" },
+      { id: "next", name: "Next", keywords: ["next", "bradesco", "compras"], logo: "assets/next.png", badge: "💚", badgeColor: "bg-[#00f2fe] text-[#333]", logoBg: "bg-[#00D464]" },
+      { id: "inter", name: "Inter", keywords: ["inter", "reserva"], logo: "assets/inter.png", badge: "🧡", badgeColor: "bg-[#fee140] text-[#333]", logoBg: "bg-[#FF7A00]" },
+      { id: "ifood", name: "iFood", keywords: ["ifood", "delivery"], logo: "assets/ifood.png", badge: "🍕", badgeColor: "bg-[#EA1D2C] text-white", logoBg: "bg-[#EA1D2C]" },
+      { id: "99", name: "99", keywords: ["99", "transporte", "lazer", "taxi", "uber"], logo: "assets/99.png", badge: "🚕", badgeColor: "bg-[#FFD700] text-[#333]", logoBg: "bg-[#FFD700]" },
+      { id: "c6", name: "C6", keywords: ["c6", "mesada"], logo: "assets/c6.png", badge: "🖤", badgeColor: "bg-[#000000] text-white", logoBg: "bg-[#000000]" },
+      { id: "english", name: "Inglês", keywords: ["inglês", "english", "curso"], logo: "assets/english.png", badge: "📚", badgeColor: "bg-[#4285F4] text-white", logoBg: "bg-[#4285F4]" },
+      { id: "shopee", name: "Shopee", keywords: ["shopee", "compras online"], logo: "assets/shopee.png", badge: "🛍️", badgeColor: "bg-[#EE4D2D] text-white", logoBg: "bg-[#EE4D2D]" }
+    ];
+
+    const getGuideItem = (text) => {
+      if (!text) return null;
+      const lowerText = text.toLowerCase();
+      // Tenta encontrar o item que possui uma keyword contida no texto
+      return GUIDE_DATA.find(item => item.keywords.some(k => lowerText.includes(k)));
+    };
+
+    // =========================================================
     // APP
     // =========================================================
     const App = () => {
@@ -608,19 +629,22 @@
       };
 
       const GuiaDespesas = () => {
+        // Recriamos a lista original usando os dados centralizados para manter a consistência visual,
+        // mas permitindo customização de título/descrição específica do Guia se necessário.
+        // Mapeamento manual para garantir a ordem e textos exatos solicitados no guia original.
         const items = [
-          { name: "Obra", desc: "Crédito Nubank", logo: "assets/nubank.png", badge: "🏗️", badgeColor: "bg-[#f5576c] text-white", logoBg: "bg-[#820AD1]" },
-          { name: "Compras Mensais", desc: "Cartão Next", logo: "assets/next.png", badge: "🛒", badgeColor: "bg-[#00f2fe] text-[#333]", logoBg: "bg-[#00D464]" },
-          { name: "Reserva de Emergência", desc: "Inter Leticia", logo: "assets/inter.png", badge: "🆘", badgeColor: "bg-[#fee140] text-[#333]", logoBg: "bg-[#FF7A00]" },
-          { name: "Delivery", desc: "iFood", logo: "assets/ifood.png", badge: "🍕", badgeColor: "bg-[#EA1D2C] text-white", logoBg: "bg-[#EA1D2C]" },
-          { name: "Transporte", desc: "99 Gabriel", logo: "assets/99.png", badge: "🚗", badgeColor: "bg-[#FFD700] text-[#333]", logoBg: "bg-[#FFD700]" },
-          { name: "Lazer", desc: "99 Leticia", logo: "assets/99.png", badge: "🎉", badgeColor: "bg-[#fecfef] text-[#333]", logoBg: "bg-[#FFD700]" },
-          { name: "Mesada Gabriel", desc: "C6 Bank Gabriel", logo: "assets/c6.png", badge: "👦", badgeColor: "bg-[#000000] text-white", logoBg: "bg-[#000000]" },
-          { name: "Mesada Leticia", desc: "C6 Bank Leticia", logo: "assets/c6.png", badge: "👧", badgeColor: "bg-[#000000] text-white", logoBg: "bg-[#000000]" },
-          { name: "Viagem", desc: "Caixinha Nubank", logo: "assets/nubank.png", badge: "✈️", badgeColor: "bg-[#820AD1] text-white", logoBg: "bg-[#820AD1]" },
-          { name: "Aluguel", desc: "Caixinha Nubank", logo: "assets/nubank.png", badge: "🏠", badgeColor: "bg-[#820AD1] text-white", logoBg: "bg-[#820AD1]" },
-          { name: "Inglês", desc: "Plataforma de Inglês", logo: "assets/english.png", badge: "📚", badgeColor: "bg-[#4285F4] text-white", logoBg: "bg-[#4285F4]" },
-          { name: "Demais Contas", desc: "Conta Shopee Gabriel", logo: "assets/shopee.png", badge: "📊", badgeColor: "bg-[#EE4D2D] text-white", logoBg: "bg-[#EE4D2D]" },
+          { name: "Obra", desc: "Crédito Nubank", id: "nubank", customBadge: "🏗️", customColor: "bg-[#f5576c] text-white" },
+          { name: "Compras Mensais", desc: "Cartão Next", id: "next", customBadge: "🛒", customColor: "bg-[#00f2fe] text-[#333]" },
+          { name: "Reserva de Emergência", desc: "Inter Leticia", id: "inter", customBadge: "🆘", customColor: "bg-[#fee140] text-[#333]" },
+          { name: "Delivery", desc: "iFood", id: "ifood", customBadge: "🍕", customColor: "bg-[#EA1D2C] text-white" },
+          { name: "Transporte", desc: "99 Gabriel", id: "99", customBadge: "🚗", customColor: "bg-[#FFD700] text-[#333]" },
+          { name: "Lazer", desc: "99 Leticia", id: "99", customBadge: "🎉", customColor: "bg-[#fecfef] text-[#333]" },
+          { name: "Mesada Gabriel", desc: "C6 Bank Gabriel", id: "c6", customBadge: "👦", customColor: "bg-[#000000] text-white" },
+          { name: "Mesada Leticia", desc: "C6 Bank Leticia", id: "c6", customBadge: "👧", customColor: "bg-[#000000] text-white" },
+          { name: "Viagem", desc: "Caixinha Nubank", id: "nubank", customBadge: "✈️", customColor: "bg-[#820AD1] text-white" },
+          { name: "Aluguel", desc: "Caixinha Nubank", id: "nubank", customBadge: "🏠", customColor: "bg-[#820AD1] text-white" },
+          { name: "Inglês", desc: "Plataforma de Inglês", id: "english", customBadge: "📚", customColor: "bg-[#4285F4] text-white" },
+          { name: "Demais Contas", desc: "Conta Shopee Gabriel", id: "shopee", customBadge: "📊", customColor: "bg-[#EE4D2D] text-white" },
         ];
 
         return (
@@ -630,20 +654,23 @@
                 <p className="text-xs text-gray-400">Para onde enviar cada pagamento</p>
              </div>
              <div className="space-y-2">
-               {items.map((item, idx) => (
-                 <div key={idx} className="flex items-center p-3 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition-colors gap-3 border border-gray-700">
-                   <div className={`w-10 h-10 min-w-[40px] rounded-lg flex items-center justify-center overflow-hidden shadow-sm ${item.logoBg} p-1`}>
-                     <img src={item.logo} alt={item.name} className="w-full h-full object-contain" />
+               {items.map((item, idx) => {
+                 const data = GUIDE_DATA.find(d => d.id === item.id) || {};
+                 return (
+                   <div key={idx} className="flex items-center p-3 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition-colors gap-3 border border-gray-700">
+                     <div className={`w-10 h-10 min-w-[40px] rounded-lg flex items-center justify-center overflow-hidden shadow-sm ${data.logoBg} p-1`}>
+                       <img src={data.logo} alt={item.name} className="w-full h-full object-contain" />
+                     </div>
+                     <div className="flex-1 min-w-0">
+                       <h3 className="text-sm font-semibold text-gray-200">{item.name}</h3>
+                       <p className="text-xs text-gray-400 truncate">{item.desc}</p>
+                     </div>
+                     <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.customColor || data.badgeColor}`}>
+                       {item.customBadge || data.badge}
+                     </span>
                    </div>
-                   <div className="flex-1 min-w-0">
-                     <h3 className="text-sm font-semibold text-gray-200">{item.name}</h3>
-                     <p className="text-xs text-gray-400 truncate">{item.desc}</p>
-                   </div>
-                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.badgeColor}`}>
-                     {item.badge}
-                   </span>
-                 </div>
-               ))}
+                 );
+               })}
              </div>
           </div>
         );
@@ -734,27 +761,39 @@
                 </thead>
 
                 <tbody>
-                  {flatRows.map((r) => (
-                    <tr
-                      key={`${r.actionId}_${r.taskId}`}
-                      className="border-t border-gray-700 hover:bg-gray-700/40 cursor-pointer"
-                      onClick={() => setChecklistActionId(r.actionId)}
-                    >
-                      <td className="p-3 text-gray-200">{r.dia}</td>
-                      <td className="p-3 text-gray-200 whitespace-nowrap">
-                        {db.usuarios?.[r.responsavel]?.emoji} {db.usuarios?.[r.responsavel]?.nome}
-                      </td>
-                      <td className={`p-3 font-semibold ${r.signed.color} whitespace-nowrap`}>{r.symbol}</td>
-                      <td className="p-3 text-gray-200">{r.descricao}</td>
-                      <td className="p-3 text-gray-400">{r.origemDestino}</td>
-                      <td className={`p-3 text-right font-bold ${r.signed.color} whitespace-nowrap`}>{r.signed.label}</td>
-                      <td className="p-3 text-right whitespace-nowrap">
-                        <span className={`text-xs px-2 py-1 rounded-full ${r.concluida ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}`}>
-                          {r.concluida ? "Concluída" : "Pendente"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {flatRows.map((r) => {
+                    const guideItem = getGuideItem(r.origemDestino) || getGuideItem(r.descricao);
+                    return (
+                      <tr
+                        key={`${r.actionId}_${r.taskId}`}
+                        className="border-t border-gray-700 hover:bg-gray-700/40 cursor-pointer"
+                        onClick={() => setChecklistActionId(r.actionId)}
+                      >
+                        <td className="p-3 text-gray-200">{r.dia}</td>
+                        <td className="p-3 text-gray-200 whitespace-nowrap">
+                          {db.usuarios?.[r.responsavel]?.emoji} {db.usuarios?.[r.responsavel]?.nome}
+                        </td>
+                        <td className={`p-3 font-semibold ${r.signed.color} whitespace-nowrap`}>{r.symbol}</td>
+                        <td className="p-3 text-gray-200">{r.descricao}</td>
+                        <td className="p-3 text-gray-400">
+                          <div className="flex items-center gap-2">
+                            {guideItem && (
+                              <div className={`w-6 h-6 rounded-md flex items-center justify-center p-0.5 ${guideItem.logoBg}`} title={guideItem.name}>
+                                <img src={guideItem.logo} className="w-full h-full object-contain" />
+                              </div>
+                            )}
+                            <span className="truncate">{r.origemDestino}</span>
+                          </div>
+                        </td>
+                        <td className={`p-3 text-right font-bold ${r.signed.color} whitespace-nowrap`}>{r.signed.label}</td>
+                        <td className="p-3 text-right whitespace-nowrap">
+                          <span className={`text-xs px-2 py-1 rounded-full ${r.concluida ? "bg-green-500/20 text-green-300" : "bg-red-500/20 text-red-300"}`}>
+                            {r.concluida ? "Concluída" : "Pendente"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {flatRows.length === 0 && (
                     <tr>
                       <td colSpan="7" className="p-6 text-center text-gray-400">Sem linhas para este filtro.</td>
@@ -789,26 +828,36 @@
               </div>
 
               <div className="space-y-3 flex-grow overflow-y-auto pr-2">
-                {action.tarefas.map((tarefa) => (
-                  <div
-                    key={tarefa.id}
-                    onClick={() => handleToggleTask(action.id, tarefa.id)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all ${tarefa.concluida ? "bg-green-500/10 text-gray-400" : "bg-gray-700/50 hover:bg-gray-700"}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-grow">
-                        <div className="flex justify-between items-center mb-1">
-                          <p className={`font-medium ${tarefa.concluida ? "line-through" : ""}`}>{tarefa.descricao}</p>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${typeColors[tarefa.tipo] || "bg-gray-500/20 text-gray-400"}`}>
-                            {tarefa.tipo}
-                          </span>
+                {action.tarefas.map((tarefa) => {
+                  const guideItem = getGuideItem(tarefa.origemDestino) || getGuideItem(tarefa.descricao);
+                  return (
+                    <div
+                      key={tarefa.id}
+                      onClick={() => handleToggleTask(action.id, tarefa.id)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all ${tarefa.concluida ? "bg-green-500/10 text-gray-400" : "bg-gray-700/50 hover:bg-gray-700"}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-grow">
+                          <div className="flex justify-between items-center mb-1">
+                            <p className={`font-medium ${tarefa.concluida ? "line-through" : ""}`}>{tarefa.descricao}</p>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${typeColors[tarefa.tipo] || "bg-gray-500/20 text-gray-400"}`}>
+                              {tarefa.tipo}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mt-1">
+                            {guideItem && (
+                              <div className={`w-5 h-5 rounded flex items-center justify-center p-0.5 ${guideItem.logoBg}`} title={guideItem.name}>
+                                <img src={guideItem.logo} className="w-full h-full object-contain" />
+                              </div>
+                            )}
+                            <p className="text-sm text-gray-400">{tarefa.origemDestino}</p>
+                          </div>
                         </div>
-                        <p className="text-sm text-gray-400">{tarefa.origemDestino}</p>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ml-4 flex-shrink-0 ${tarefa.concluida ? "bg-green-500 border-green-500" : "border-gray-500"}`}>
+                          {tarefa.concluida && <span>✓</span>}
+                        </div>
                       </div>
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ml-4 flex-shrink-0 ${tarefa.concluida ? "bg-green-500 border-green-500" : "border-gray-500"}`}>
-                        {tarefa.concluida && <span>✓</span>}
-                      </div>
-                    </div>
 
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-base font-bold text-cyan-400">R$ {Number(tarefa.valor).toFixed(2)}</p>
@@ -827,7 +876,8 @@
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               <button onClick={() => setChecklistActionId(null)} className="mt-6 w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0">
