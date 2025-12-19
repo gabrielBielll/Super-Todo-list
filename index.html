@@ -286,6 +286,7 @@
       const [mode, setMode] = useState("timeline"); // 'timeline' | 'planilha'
 
       const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
+      const [showDashboard, setShowDashboard] = useState(false);
 
       useEffect(() => {
         localStorage.setItem("financeDb", JSON.stringify(db));
@@ -526,8 +527,12 @@
       // =========================================================
       const Header = () => (
         <header className="p-3 sm:p-4 bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20 flex justify-between items-center border-b border-gray-700">
-          <div>
+          <div
+            onClick={() => setShowDashboard(!showDashboard)}
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <h1 className="text-lg sm:text-xl font-bold text-cyan-400">Dashboard Financeiro</h1>
+            <span className="text-gray-400 text-sm">{showDashboard ? '▲' : '▼'}</span>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setIsManagementModalOpen(true)} className="text-xs bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-md hover:bg-yellow-500/40 transition-colors">
@@ -1152,13 +1157,17 @@
             <div className="min-h-screen pb-20">
               <Header />
               <main>
-                <ContasPanel />
-                <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
+                {showDashboard && (
+                  <div className="animate-fade-in-down">
+                    <ContasPanel />
+                    <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
 
-                <CaixinhasPanel />
-                <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
+                    <CaixinhasPanel />
+                    <div className="px-3 sm:px-4"><div className="border-t border-gray-700/50"></div></div>
 
-                <CartoesPanel />
+                    <CartoesPanel />
+                  </div>
+                )}
                 <ViewSwitcher />
 
                 {mode === "planilha" ? <SpreadsheetView /> : mode === "guia" ? <GuiaDespesas /> : <Timeline />}
