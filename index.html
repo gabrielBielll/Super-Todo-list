@@ -601,7 +601,50 @@
             <div className="flex justify-center gap-2">
               <button onClick={() => setMode("timeline")} className={modeButton("timeline")}>🕒 Linha do tempo</button>
               <button onClick={() => setMode("planilha")} className={modeButton("planilha")}>📄 Planilha</button>
+              <button onClick={() => setMode("guia")} className={modeButton("guia")}>💰 Guia</button>
             </div>
+          </div>
+        );
+      };
+
+      const GuiaDespesas = () => {
+        const items = [
+          { name: "Obra", desc: "Crédito Nubank", logo: "assets/nubank.png", badge: "🏗️", badgeColor: "bg-[#f5576c] text-white", logoBg: "bg-[#820AD1]" },
+          { name: "Compras Mensais", desc: "Cartão Next", logo: "assets/next.png", badge: "🛒", badgeColor: "bg-[#00f2fe] text-[#333]", logoBg: "bg-[#00D464]" },
+          { name: "Reserva de Emergência", desc: "Inter Leticia", logo: "assets/inter.png", badge: "🆘", badgeColor: "bg-[#fee140] text-[#333]", logoBg: "bg-[#FF7A00]" },
+          { name: "Delivery", desc: "iFood", logo: "assets/ifood.png", badge: "🍕", badgeColor: "bg-[#EA1D2C] text-white", logoBg: "bg-[#EA1D2C]" },
+          { name: "Transporte", desc: "99 Gabriel", logo: "assets/99.png", badge: "🚗", badgeColor: "bg-[#FFD700] text-[#333]", logoBg: "bg-[#FFD700]" },
+          { name: "Lazer", desc: "99 Leticia", logo: "assets/99.png", badge: "🎉", badgeColor: "bg-[#fecfef] text-[#333]", logoBg: "bg-[#FFD700]" },
+          { name: "Mesada Gabriel", desc: "C6 Bank Gabriel", logo: "assets/c6.png", badge: "👦", badgeColor: "bg-[#000000] text-white", logoBg: "bg-[#000000]" },
+          { name: "Mesada Leticia", desc: "C6 Bank Leticia", logo: "assets/c6.png", badge: "👧", badgeColor: "bg-[#000000] text-white", logoBg: "bg-[#000000]" },
+          { name: "Viagem", desc: "Caixinha Nubank", logo: "assets/nubank.png", badge: "✈️", badgeColor: "bg-[#820AD1] text-white", logoBg: "bg-[#820AD1]" },
+          { name: "Aluguel", desc: "Caixinha Nubank", logo: "assets/nubank.png", badge: "🏠", badgeColor: "bg-[#820AD1] text-white", logoBg: "bg-[#820AD1]" },
+          { name: "Inglês", desc: "Plataforma de Inglês", logo: "assets/english.png", badge: "📚", badgeColor: "bg-[#4285F4] text-white", logoBg: "bg-[#4285F4]" },
+          { name: "Demais Contas", desc: "Conta Shopee Gabriel", logo: "assets/shopee.png", badge: "📊", badgeColor: "bg-[#EE4D2D] text-white", logoBg: "bg-[#EE4D2D]" },
+        ];
+
+        return (
+          <div className="p-3 sm:p-4 max-w-lg mx-auto">
+             <div className="text-center mb-6 pb-2 border-b border-gray-700">
+                <h1 className="text-xl font-bold text-cyan-400">💰 Guia de Despesas</h1>
+                <p className="text-xs text-gray-400">Para onde enviar cada pagamento</p>
+             </div>
+             <div className="space-y-2">
+               {items.map((item, idx) => (
+                 <div key={idx} className="flex items-center p-3 bg-gray-800 rounded-xl shadow-lg hover:bg-gray-700 transition-colors gap-3 border border-gray-700">
+                   <div className={`w-10 h-10 min-w-[40px] rounded-lg flex items-center justify-center overflow-hidden shadow-sm ${item.logoBg} p-1`}>
+                     <img src={item.logo} alt={item.name} className="w-full h-full object-contain" />
+                   </div>
+                   <div className="flex-1 min-w-0">
+                     <h3 className="text-sm font-semibold text-gray-200">{item.name}</h3>
+                     <p className="text-xs text-gray-400 truncate">{item.desc}</p>
+                   </div>
+                   <span className={`px-2 py-1 rounded-full text-xs font-bold ${item.badgeColor}`}>
+                     {item.badge}
+                   </span>
+                 </div>
+               ))}
+             </div>
           </div>
         );
       };
@@ -1068,7 +1111,7 @@
                 <CartoesPanel />
                 <ViewSwitcher />
 
-                {mode === "planilha" ? <SpreadsheetView /> : <Timeline />}
+                {mode === "planilha" ? <SpreadsheetView /> : mode === "guia" ? <GuiaDespesas /> : <Timeline />}
               </main>
 
               {checklistActionId && <ChecklistModal />}
